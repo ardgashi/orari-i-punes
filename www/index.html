@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Orari">
+<meta name="theme-color" content="#1f7a5a">
+<title>Orari i Punës</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;700;800&family=Azeret+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#eef0ec;--card:#fbfcf9;--ink:#1d2a2a;--muted:#5d6b69;--line:#d4dad5;--go:#1f7a5a;--pause:#c27a12;--stop:#b23a3a;
+--fb:"Schibsted Grotesk",system-ui,sans-serif;--fn:"Azeret Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#121817;--card:#1a2221;--ink:#e6ece9;--muted:#93a29e;--line:#2c3735;--go:#3fb589;--pause:#e2a23d;--stop:#e06a6a;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--fb);font-size:15px;line-height:1.45;
+padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-size:1.5rem;font-weight:800;margin:0}
+.sub{color:var(--muted);margin:2px 0 0;font-size:.9rem}
+.num{font-family:var(--fn);font-variant-numeric:tabular-nums}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.clock{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.state{display:inline-flex;align-items:center;gap:8px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:5px 12px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.state[data-s="work"]{color:var(--go);border-color:var(--go)}.state[data-s="work"] .dot{background:var(--go);animation:p 1.4s infinite}
+.state[data-s="pause"]{color:var(--pause);border-color:var(--pause)}.state[data-s="pause"] .dot{background:var(--pause)}
+.state[data-s="done"]{color:var(--ink)}.state[data-s="done"] .dot{background:var(--ink)}
+@keyframes p{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none!important}}
+.big{font-size:clamp(2.6rem,13vw,3.6rem);font-weight:600;line-height:1}
+.meta{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;color:var(--muted);font-size:.88rem}
+.meta b{color:var(--ink)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:14px 12px;font-weight:700}
+button:focus-visible{outline:3px solid var(--go);outline-offset:2px}
+button:disabled{opacity:.35}
+.go{background:var(--go);border-color:var(--go);color:#fff;grid-column:1/-1;font-size:1.15rem;padding:20px}
+.pa{border-color:var(--pause);color:var(--pause)}.st{border-color:var(--stop);color:var(--stop)}
+.log{width:100%;display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted)}
+.log div{display:flex;justify-content:space-between;border-top:1px dashed var(--line);padding-top:4px}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mh h2{margin:0;font-size:1.1rem;font-weight:800;text-transform:capitalize}
+.mh button{padding:8px 12px}
+.tot{display:flex;justify-content:space-between;align-items:baseline;padding:12px 14px;border-radius:10px;background:var(--bg);margin-bottom:12px}
+.tot .num{font-size:1.4rem;font-weight:600;color:var(--go)}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);padding:6px;border-bottom:1px solid var(--line)}
+td{padding:9px 6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.h{text-align:right;font-weight:600}
+tr.open td{color:var(--pause)}
+.del{border:none;background:none;color:var(--muted);padding:4px 6px;font-weight:400}
+td button{padding:4px 8px;font-size:.78rem}
+.empty{color:var(--muted);text-align:center;padding:18px 6px;white-space:normal}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.tools button{flex:1;min-width:140px;padding:11px}
+.tools .rest{flex-basis:100%;border-color:var(--go);color:var(--go)}
+.note{font-size:.8rem;color:var(--muted);text-align:center}
+details.card{padding:0}
+details summary{cursor:pointer;padding:14px 18px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details summary::-webkit-details-marker{display:none}
+details summary span{color:var(--muted);font-weight:400;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.form{display:grid;gap:10px;padding:0 18px 18px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.form input{font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);text-transform:none;letter-spacing:0;font-weight:400}
+.form input:focus{outline:2px solid var(--go);outline-offset:1px}
+.who{color:var(--ink);font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>Orari i Punës</h1><p class="sub"><span class="who" id="who"></span><span id="today">—</span></p></header>
+<details class="card" id="prof">
+<summary>Të dhënat e tua <span id="profSum">Ndrysho</span></summary>
+<div class="form">
+<label for="fEmri">Emri<input id="fEmri" autocomplete="given-name" placeholder="p.sh. Ardian"></label>
+<label for="fMbiemri">Mbiemri<input id="fMbiemri" autocomplete="family-name" placeholder="p.sh. Arifi"></label>
+<label for="fVendi">Vendi i punës<input id="fVendi" autocomplete="organization" placeholder="Firma, qyteti"></label>
+<button type="button" class="go" id="bProfOk">✓ Mbaro</button>
+</div>
+</details>
+<section class="card clock">
+<span class="state" id="state" data-s="idle"><span class="dot"></span><span id="stTxt"></span></span>
+<div class="big num" id="timer">0:00:00</div>
+<div class="meta"><span>Fillimi: <b class="num" id="mS">—</b></span><span>Pauza: <b class="num" id="mP">0:00</b></span></div>
+<div class="btns">
+<button class="go" id="bGo">▶ Fillo punën</button>
+<button class="pa" id="bPa">❚❚ Pauzë</button>
+<button class="st" id="bSt">■ Mbaro punën</button>
+</div>
+<div class="log" id="log"></div>
+</section>
+<section class="card">
+<div class="mh"><button id="prev" aria-label="Muaji para">‹</button><h2 id="mT"></h2><button id="next" aria-label="Muaji tjetër">›</button></div>
+<div class="tot"><span>Gjithsej orë kët muaj</span><span class="num" id="mTot">0:00</span></div>
+<div class="tbl"><table><thead><tr><th>Data</th><th>Fillimi</th><th>Mbarimi</th><th>Pauza</th><th class="h">Orë</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="tools"><button id="bCsv">Shkarko listën (Excel)</button><button id="bCopy">Kopjo listën</button><button id="bRest" class="rest">↺ Rikthe prej Excel-it</button></div>
+<input type="file" id="fRest" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple hidden>
+<p class="note" id="restMsg" hidden></p>
+</section>
+<button id="bInstall" class="go" hidden>⬇ Instalo app-in n'telefon</button>
+<p class="note">Orari ruhet veç n'kët telefon. Para se me e fshi historinë e browserit, shkarkoje listën.</p>
+</div>
+<script>
+const $=i=>document.getElementById(i);
+const DAYS=["E diel","E hënë","E martë","E mërkurë","E enjte","E premte","E shtunë"];
+const MON=["janar","shkurt","mars","prill","maj","qershor","korrik","gusht","shtator","tetor","nëntor","dhjetor"];
+const pad=n=>String(n).padStart(2,"0");
+const keyOf=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const hm=t=>{const d=new Date(t);return pad(d.getHours())+":"+pad(d.getMinutes())};
+const dur=(ms,sec)=>{ms=Math.max(0,ms);const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return sec?h+":"+pad(m)+":"+pad(s%60):h+":"+pad(m)};
+const dec=ms=>(ms/3600000).toFixed(2).replace(".",",");
+let days={};try{days=JSON.parse(localStorage.getItem("orari")||"{}")}catch(e){}
+const save=()=>{try{localStorage.setItem("orari",JSON.stringify(days))}catch(e){}};
+let view=new Date();view.setDate(1);let pend=null;
+const MON_DE=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+let prof={emri:"",mbiemri:"",vendi:""};try{Object.assign(prof,JSON.parse(localStorage.getItem("orari_profil")||"{}"))}catch(e){}
+const fullName=()=>(prof.emri+" "+prof.mbiemri).trim();
+function showProf(){
+ const n=fullName();
+ $("who").textContent=n?n+(prof.vendi?" · "+prof.vendi:"")+" — ":"";
+ 
+}
+$("bProfOk").onclick=()=>{$("prof").open=false;showProf();window.scrollTo({top:0,behavior:"smooth"})};
+[["fEmri","emri"],["fMbiemri","mbiemri"],["fVendi","vendi"]].forEach(([id,k])=>{
+ $(id).value=prof[k]||"";
+ $(id).addEventListener("input",()=>{prof[k]=$(id).value.trim();try{localStorage.setItem("orari_profil",JSON.stringify(prof))}catch(e){}showProf()});
+});
+if(!fullName())$("prof").open=true;
+showProf();
+
+function act(){const k=Object.keys(days).sort();for(let i=k.length-1;i>=0;i--){const d=days[k[i]];if(d.segs.length&&!d.done)return k[i]}return null}
+function stat(d){if(!d||!d.segs.length)return"idle";if(d.done)return"done";return d.segs[d.segs.length-1].e?"pause":"work"}
+function calc(d,now){let w=0;d.segs.forEach(s=>w+=(s.e||now)-s.s);const f=d.segs[0].s,le=d.segs[d.segs.length-1].e,end=d.done?le:now;return{w,p:(end-f)-w,f,end:d.done?le:null}}
+
+$("bGo").onclick=()=>{let k=act();if(!k){k=keyOf(new Date());days[k]=days[k]||{segs:[],done:false};days[k].done=false}
+ const d=days[k];if(stat(d)==="work")return;d.segs.push({s:Date.now(),e:null});save();render()};
+$("bPa").onclick=()=>{const k=act();if(!k)return;const d=days[k];if(stat(d)!=="work")return;d.segs[d.segs.length-1].e=Date.now();save();render()};
+$("bSt").onclick=()=>{const k=act();if(!k)return;const d=days[k];if(stat(d)==="work")d.segs[d.segs.length-1].e=Date.now();d.done=true;save();render()};
+$("prev").onclick=()=>{view.setMonth(view.getMonth()-1);pend=null;month()};
+$("next").onclick=()=>{view.setMonth(view.getMonth()+1);pend=null;month()};
+
+function render(){clock();month()}
+function clock(){
+ const now=Date.now(),k=act()||keyOf(new Date()),d=days[k],s=stat(d),t=new Date();
+ $("today").textContent=DAYS[t.getDay()]+", "+t.getDate()+" "+MON[t.getMonth()]+" "+t.getFullYear();
+ $("state").dataset.s=s;$("stTxt").textContent={idle:"S'ke fillu hala",work:"Je n'punë",pause:"Në pauzë",done:"Puna mbaroi"}[s];
+ $("bGo").textContent=s==="pause"?"▶ Vazhdo me punë":s==="done"?"▶ Fillo prap":"▶ Fillo punën";
+ $("bGo").disabled=s==="work";$("bPa").disabled=s!=="work";$("bSt").disabled=!(s==="work"||s==="pause");
+ if(d&&d.segs.length){const x=calc(d,now);$("timer").textContent=dur(x.w,1);$("mS").textContent=hm(x.f);$("mP").textContent=dur(x.p);
+  $("log").innerHTML=d.segs.map((g,i)=>`<div><span>Blloku ${i+1}</span><span class="num">${hm(g.s)} – ${g.e?hm(g.e):"tani"}</span></div>`).join("")}
+ else{$("timer").textContent="0:00:00";$("mS").textContent="—";$("mP").textContent="0:00";$("log").innerHTML=""}
+}
+function rows(){return rowsFor(view.getFullYear(),view.getMonth())}
+function month(){
+ $("mT").textContent=MON[view.getMonth()]+" "+view.getFullYear();
+ const r=rows();let tot=0;
+ $("rows").innerHTML=r.length?r.map(({k,d,x})=>{tot+=x.w;const dt=new Date(k+"T12:00");
+  const del=pend===k?`<button class="st" data-y="${k}">Fshije</button> <button data-n="1">Jo</button>`:`<button class="del" data-d="${k}" aria-label="Fshij ditën">✕</button>`;
+  return `<tr class="${d.done?"":"open"}"><td>${DAYS[dt.getDay()].slice(2,5)} ${pad(dt.getDate())}.${pad(dt.getMonth()+1)}.</td><td class="num">${hm(x.f)}</td><td class="num">${x.end?hm(x.end):"…"}</td><td class="num">${dur(x.p)}</td><td class="num h">${dur(x.w)}</td><td>${del}</td></tr>`}).join("")
+ :`<tr><td colspan="6" class="empty">S'ka ditë pune n'kët muaj hala. Kliko „Fillo punën“ dhe dita e parë del qitu.</td></tr>`;
+ $("mTot").textContent=dur(tot);
+}
+$("rows").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.d){pend=b.dataset.d;month()}else if(b.dataset.n){pend=null;month()}
+ else if(b.dataset.y){delete days[b.dataset.y];pend=null;save();render()}};
+
+let xlLoad=null;
+function loadXL(){if(window.ExcelJS)return Promise.resolve();if(xlLoad)return xlLoad;
+ const tryS=src=>new Promise((ok,no)=>{const sc=document.createElement("script");sc.src=src;sc.onload=ok;sc.onerror=no;document.head.appendChild(sc)});
+ xlLoad=tryS("exceljs.min.js").catch(()=>tryS("https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js")).catch(e=>{xlLoad=null;throw e});return xlLoad}
+const NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function fileBase(y,m){const n=[prof.emri,prof.mbiemri].join(" ").trim().replace(/[\\/:*?"<>|]/g,"").replace(/\s+/g,"-");return "Arbeitszeit-"+(n?n+"-":"")+MON_DE[m]+"-"+y}
+function rowsFor(y,m){const pre=y+"-"+pad(m+1)+"-";
+ return Object.keys(days).filter(k=>k.startsWith(pre)&&days[k].segs.length).sort().map(k=>({k,d:days[k],x:calc(days[k],Date.now())}))}
+function b64(blob){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=no;r.readAsDataURL(blob)})}
+async function saveBlob(blob,name){
+ if(NATIVE){const P=window.Capacitor.Plugins,FS=P.Filesystem,SH=P.Share;const data=await b64(blob);
+  try{await FS.writeFile({path:"Orari i Punes/"+name,data,directory:"DOCUMENTS",recursive:true});note("U ruajt n'telefon: Documents › Orari i Punes › "+name)}catch(e){}
+  try{const w=await FS.writeFile({path:name,data,directory:"CACHE"});if(SH)await SH.share({title:name,files:[w.uri]})}catch(e){}
+  return}
+ saveBlob0(blob,name)}
+function note(t){const m=$("restMsg");m.hidden=false;m.textContent=t}
+function saveBlob0(blob,name){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
+async function exportMonth(y,m){
+ const r=rowsFor(y,m);let tot=0;r.forEach(o=>tot+=o.x.w);
+ try{await loadXL()}catch(e){exportCsv(y,m,r,tot);return}
+ const G="FF1F7A5A",GL="FFE3EFE9",BG="FFEEF0EC",INK="FF1D2A2A",MU="FF5D6B69",LN="FFD4DAD5";
+ const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet(cap(MON[m])+" "+y,{
+  pageSetup:{paperSize:9,orientation:"portrait",fitToPage:true,fitToWidth:1,fitToHeight:0,horizontalCentered:true,
+   margins:{left:0.5,right:0.5,top:0.6,bottom:0.6,header:0.3,footer:0.3}},
+  views:[{showGridLines:false}]});
+ ws.columns=[{width:17},{width:13},{width:10},{width:10},{width:10},{width:11},{width:12}];
+ const f=(o)=>Object.assign({name:"Arial",size:10,color:{argb:INK}},o);
+ const fill=c=>({type:"pattern",pattern:"solid",fgColor:{argb:c}});
+ const line={style:"thin",color:{argb:LN}};
+ ws.mergeCells("A1:G1");const t=ws.getCell("A1");t.value="Orari i punës";t.font=f({size:18,bold:true,color:{argb:"FFFFFFFF"}});
+ t.fill=fill(G);t.alignment={vertical:"middle",indent:1};ws.getRow(1).height=34;
+ ws.mergeCells("A2:G2");const t2=ws.getCell("A2");t2.value="Arbeitszeitnachweis · "+MON_DE[m]+" "+y;t2.font=f({size:10,color:{argb:"FFFFFFFF"}});
+ t2.fill=fill(G);t2.alignment={vertical:"top",indent:1};ws.getRow(2).height=20;
+ const info=[["Emri dhe mbiemri",fullName()||"—","Ditë pune",r.length],["Vendi i punës",prof.vendi||"—","Orë gjithsej",dur(tot)],["Muaji",cap(MON[m])+" "+y,"Orë (decimal)",Math.round(tot/36000)/100]];
+ info.forEach((v,i)=>{const rn=4+i;ws.mergeCells(`B${rn}:D${rn}`);
+  const a=ws.getCell("A"+rn),b=ws.getCell("B"+rn),e=ws.getCell("E"+rn),g=ws.getCell("G"+rn);ws.mergeCells(`E${rn}:F${rn}`);
+  a.value=v[0];a.font=f({size:9,color:{argb:MU}});b.value=v[1];b.font=f({bold:true,size:11});
+  e.value=v[2];e.font=f({size:9,color:{argb:MU}});e.alignment={horizontal:"right"};g.value=v[3];g.font=f({bold:true,size:11,color:{argb:G}});g.alignment={horizontal:"right"};
+  if(i===2)g.numFmt="0.00";
+  [a,b,ws.getCell("C"+rn),ws.getCell("D"+rn),e,ws.getCell("F"+rn),g].forEach(c=>{c.fill=fill(BG);c.border={bottom:line}});ws.getRow(rn).height=20});
+ const H=8;const hd=["Data","Dita","Fillimi","Mbarimi","Pauza","Orë","Orë (dec.)"];
+ hd.forEach((v,i)=>{const c=ws.getRow(H).getCell(i+1);c.value=v;c.font=f({bold:true,size:9,color:{argb:"FFFFFFFF"}});c.fill=fill(G);
+  c.alignment={horizontal:i<2?"left":"center",vertical:"middle",indent:i<2?1:0}});ws.getRow(H).height=22;
+ r.forEach(({k,d,x},i)=>{const dt=new Date(k+"T12:00");const rn=H+1+i;const row=ws.getRow(rn);
+  const vals=[pad(dt.getDate())+"."+pad(dt.getMonth()+1)+"."+dt.getFullYear(),DAYS[dt.getDay()],hm(x.f),x.end?hm(x.end):"—",dur(x.p),dur(x.w),Math.round(x.w/36000)/100];
+  vals.forEach((v,j)=>{const c=row.getCell(j+1);c.value=v;c.font=f({bold:j===5});c.alignment={horizontal:j<2?"left":"center",vertical:"middle",indent:j<2?1:0};
+   c.border={bottom:line};if(i%2)c.fill=fill(BG);if(j===6)c.numFmt="0.00"});row.height=18});
+ const TR=H+1+r.length;const tr=ws.getRow(TR);
+ ws.mergeCells(`A${TR}:E${TR}`);tr.getCell(1).value="Gjithsej";
+ tr.getCell(6).value=dur(tot);tr.getCell(7).value=Math.round(tot/36000)/100;tr.getCell(7).numFmt="0.00";
+ for(let j=1;j<=7;j++){const c=tr.getCell(j);c.fill=fill(GL);c.font=f({bold:true,size:11,color:{argb:G}});c.alignment={horizontal:j===1?"left":"center",vertical:"middle",indent:j===1?1:0};c.border={top:{style:"medium",color:{argb:G}}}}
+ tr.height=24;
+ const S=TR+4;ws.mergeCells(`A${S}:C${S}`);ws.mergeCells(`E${S}:G${S}`);
+ [["A","Nënshkrimi i punëtorit"],["E","Nënshkrimi i punëdhënësit"]].forEach(([col,txt])=>{const c=ws.getCell(col+S);c.value=txt;c.font=f({size:9,color:{argb:MU}});c.border={top:{style:"thin",color:{argb:INK}}}});
+ ws.headerFooter.oddFooter="&L&8"+(fullName()||"")+"&R&8Faqja &P / &N";
+ ws.pageSetup.printTitlesRow=H+":"+H;
+ const bk=wb.addWorksheet("backup",{state:"veryHidden"});const sub={};r.forEach(o=>sub[o.k]=o.d);
+ bk.getCell("A1").value="ORARI-BACKUP-1";bk.getCell("A2").value=JSON.stringify({prof,days:sub});
+ const buf=await wb.xlsx.writeBuffer();
+ saveBlob(new Blob([buf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),fileBase(y,m)+".xlsx");
+ markDone(y,m);
+}
+function exportCsv(y,m,r,tot){
+ const out=["Orari i punës;"+cap(MON[m])+" "+y,"Emri dhe mbiemri;"+(fullName()||"—"),"Vendi i punës;"+(prof.vendi||"—"),"","Data;Dita;Fillimi;Mbarimi;Pauza;Orë;Orë (dec.)"];
+ r.forEach(({k,x})=>{const dt=new Date(k+"T12:00");out.push([pad(dt.getDate())+"."+pad(dt.getMonth()+1)+"."+dt.getFullYear(),DAYS[dt.getDay()],hm(x.f),x.end?hm(x.end):"",dur(x.p),dur(x.w),dec(x.w)].join(";"))});
+ out.push(["Gjithsej","","","","",dur(tot),dec(tot)].join(";"));
+ saveBlob(new Blob(["﻿"+out.join("\r\n")],{type:"text/csv;charset=utf-8"}),fileBase(y,m)+".csv");markDone(y,m);
+}
+function doneList(){try{return JSON.parse(localStorage.getItem("orari_shkarkuar")||"[]")}catch(e){return[]}}
+function markDone(y,m){const l=doneList(),k=y+"-"+pad(m+1);if(!l.includes(k)){l.push(k);try{localStorage.setItem("orari_shkarkuar",JSON.stringify(l))}catch(e){}}}
+$("bCsv").onclick=async()=>{const b=$("bCsv");b.disabled=true;b.textContent="Po bëhet…";
+ try{await exportMonth(view.getFullYear(),view.getMonth())}finally{b.disabled=false;b.textContent="Shkarko listën (Excel)"}};
+$("bCopy").onclick=async()=>{
+ const r=rows();let tot=0;const L=["Orari i punës – "+MON[view.getMonth()]+" "+view.getFullYear(),
+  "Emri: "+(fullName()||"—"),"Vendi i punës: "+(prof.vendi||"—"),"Ditë pune: "+r.length,""];
+ r.forEach(({k,x})=>{tot+=x.w;const dt=new Date(k+"T12:00");
+  L.push(pad(dt.getDate())+"."+pad(dt.getMonth()+1)+".  "+hm(x.f)+" – "+(x.end?hm(x.end):"…")+"  pauzë "+dur(x.p)+"  = "+dur(x.w)+" orë")});
+ L.push("","Gjithsej: "+dur(tot)+" orë ("+dec(tot)+" h)");
+ try{await navigator.clipboard.writeText(L.join("\n"));$("bCopy").textContent="U kopjua ✓";setTimeout(()=>$("bCopy").textContent="Kopjo listën",1800)}
+ catch(e){prompt("Kopjoje:",L.join("\n"))}
+};
+$("bRest").onclick=()=>$("fRest").click();
+$("fRest").onchange=async e=>{const fls=[...e.target.files];e.target.value="";if(!fls.length)return;const msg=$("restMsg");msg.hidden=false;msg.textContent="Po rikthehen të dhënat…";
+ let n=0,bad=0;
+ try{await loadXL()}catch(x){msg.textContent="S'ka internet. Lidhu me internet edhe provo prap.";return}
+ for(const fl of fls){try{const wb=new ExcelJS.Workbook();await wb.xlsx.load(await fl.arrayBuffer());
+  const bk=wb.getWorksheet("backup");if(!bk||bk.getCell("A1").value!=="ORARI-BACKUP-1")throw 0;
+  const o=JSON.parse(bk.getCell("A2").value);
+  Object.keys(o.days||{}).forEach(k=>{if(!days[k]||!days[k].segs.length){days[k]=o.days[k];n++}});
+  if(!fullName()&&o.prof){Object.assign(prof,o.prof);["emri","mbiemri","vendi"].forEach((k,i)=>$(["fEmri","fMbiemri","fVendi"][i]).value=prof[k]||"");try{localStorage.setItem("orari_profil",JSON.stringify(prof))}catch(x){}$("prof").open=false;showProf()}
+ }catch(x){bad++}}
+ save();render();
+ msg.textContent=(n?"U rikthyen "+n+" ditë ✓":"S'u gjet asnjë ditë e re.")+(bad?" "+bad+" file s'ishin lista prej këtij app-i.":"");
+};
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")&&!NATIVE)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+let instEv=null;window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();instEv=e;$("bInstall").hidden=false});
+$("bInstall").onclick=async()=>{if(!instEv)return;instEv.prompt();await instEv.userChoice;instEv=null;$("bInstall").hidden=true};
+window.addEventListener("appinstalled",()=>{$("bInstall").hidden=true});
+render();setInterval(clock,1000);setInterval(month,30000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){render()}});
+</script>
+</body>
+</html>

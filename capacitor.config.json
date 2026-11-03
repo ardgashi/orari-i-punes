@@ -1,0 +1,6 @@
+{
+  "appId": "app.orari.punes",
+  "appName": "Orari i Punës",
+  "webDir": "www",
+  "android": { "allowMixedContent": false }
+}

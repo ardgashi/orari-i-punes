@@ -1,0 +1,16 @@
+ORARI I PUNËS – si ndërtohen .apk dhe .exe (falas, me GitHub)
+
+1. Hap llogari falas te github.com
+2. Kliko "+" nalt djathtas -> "New repository"
+   - Name: orari-i-punes
+   - Public (që shkarkimi me punu pa login)
+   - Create repository
+3. Kliko "uploading an existing file"
+4. Hape folderin "projekti" n'kompjuter, selekto KREJT çka ka mrena
+   (edhe folderin .github) dhe tërhiqi n'faqe -> "Commit changes"
+5. Kliko "Actions" nalt. Pret 10-15 min derisa del ✓ e gjelbër.
+6. Kliko "Releases" djathtas n'faqen e projektit:
+   aty janë Orari-i-Punes.apk dhe Orari-i-Punes-Setup.exe
+
+Nëse .github s'u ngarku: "Add file" -> "Create new file",
+emri: .github/workflows/build.yml, ngjite përmbajtjen e atij file-i.
