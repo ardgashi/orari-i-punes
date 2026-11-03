@@ -1,4 +1,4 @@
-const CACHE="orari-v1";
+const CACHE="orari-v3";
 const CORE=["./","./index.html","./manifest.json","./icon-192.png","./icon-512.png","./apple-touch-icon.png",
  "./exceljs.min.js"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(CORE.map(u=>c.add(u).catch(()=>{})))));self.skipWaiting()});
